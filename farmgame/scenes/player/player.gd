@@ -16,6 +16,8 @@ func move_player(direction: Vector2) -> void:
 func use_tool() -> void:
 	if current_tool == "hoe":
 		use_hoe()
+	elif current_tool == "seed":
+		use_seed()
 func use_hoe() -> void:
 	var areas := interaction_area.get_overlapping_areas()
 	var closest_tile: Area2D = null
@@ -28,3 +30,13 @@ func use_hoe() -> void:
 				closest_tile = area
 	if closest_tile != null:
 		closest_tile.till()
+func use_seed():
+	print("use seed")
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_1:
+			current_tool = "hoe"
+			print("current tool: hoe")
+		elif event.keycode == KEY_2:
+			current_tool = "seed"
+			print("current tool: seed")
