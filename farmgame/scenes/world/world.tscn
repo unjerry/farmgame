@@ -1,3 +1,8 @@
 [gd_scene format=3 uid="uid://cg0gph4okeeta"]
 
 [node name="World" type="Node2D" unique_id=649554469]
+
+[node name="Ground" type="ColorRect" parent="." unique_id=395486074]
+offset_right = 2000.0
+offset_bottom = 2000.0
+color = Color(0.6010999, 0.83032393, 0.8025916, 1)

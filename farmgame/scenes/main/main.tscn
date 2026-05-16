@@ -1,7 +1,10 @@
 [gd_scene format=3 uid="uid://b8run4tuv0f5c"]
 
 [ext_resource type="PackedScene" uid="uid://dxsesq3sbvd33" path="res://scenes/player/player.tscn" id="1_hyk8p"]
+[ext_resource type="PackedScene" uid="uid://cg0gph4okeeta" path="res://scenes/world/world.tscn" id="1_iuonh"]
 
 [node name="Main" type="Node2D" unique_id=756566586]
+
+[node name="World" parent="." unique_id=649554469 instance=ExtResource("1_iuonh")]
 
 [node name="Player" parent="." unique_id=794987288 instance=ExtResource("1_hyk8p")]
