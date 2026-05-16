@@ -1,8 +1,16 @@
 [gd_scene format=3 uid="uid://cg0gph4okeeta"]
 
+[ext_resource type="Script" uid="uid://d1p0a5usg86j" path="res://scenes/world/world.gd" id="1_dphjl"]
+[ext_resource type="PackedScene" uid="uid://d1xpj3bmx11oh" path="res://scenes/farm/farm_tile.tscn" id="2_sl2e5"]
+
 [node name="World" type="Node2D" unique_id=649554469]
+script = ExtResource("1_dphjl")
+farm_tile_scene = ExtResource("2_sl2e5")
 
 [node name="Ground" type="ColorRect" parent="." unique_id=395486074]
 offset_right = 2000.0
 offset_bottom = 2000.0
+mouse_filter = 2
 color = Color(0.6010999, 0.83032393, 0.8025916, 1)
+
+[node name="FarmTiles" type="Node2D" parent="." unique_id=320908641]
