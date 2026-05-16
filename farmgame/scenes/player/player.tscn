@@ -4,15 +4,25 @@
 [ext_resource type="Script" uid="uid://ckdtvylf3stk7" path="res://scenes/player/player.gd" id="1_dovo2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8afob"]
-size = Vector2(128, 128)
+size = Vector2(64, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dovo2"]
+size = Vector2(60, 60)
 
 [node name="Player" type="CharacterBody2D" unique_id=794987288]
 script = ExtResource("1_dovo2")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1508910141]
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("1_8afob")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1806120664]
 shape = SubResource("RectangleShape2D_8afob")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=915473541]
+
+[node name="InteractionArea" type="Area2D" parent="." unique_id=1483179648]
+position = Vector2(0, 64)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea" unique_id=633053556]
+shape = SubResource("RectangleShape2D_dovo2")

@@ -10,5 +10,6 @@ func create_farm_tile() -> void:
 	for y in grid_height:
 		for x in grid_width:
 			var farm_tile := farm_tile_scene.instantiate()
+			farm_tile.name = "FarmTile_%s_%s" % [x, y]
 			$FarmTiles.add_child(farm_tile)
 			farm_tile.position = farm_start_position + Vector2(x * tile_stride, y * tile_stride)
