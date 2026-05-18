@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bwtvosiab3ni2"]
+
+[ext_resource type="Script" uid="uid://cbpkpvkrn8i43" path="res://scenes/crop/crop.gd" id="1_o3xuo"]
+[ext_resource type="Texture2D" uid="uid://be7tdyhke46a1" path="res://icon.svg" id="1_tuvmx"]
+
+[node name="Crop" type="Node2D" unique_id=1797342770]
+script = ExtResource("1_o3xuo")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1052483741]
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("1_tuvmx")

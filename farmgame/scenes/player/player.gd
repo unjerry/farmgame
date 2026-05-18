@@ -18,6 +18,20 @@ func use_tool() -> void:
 		use_hoe()
 	elif current_tool == "seed":
 		use_seed()
+	elif current_tool == "watering_can":
+		use_watering_can()
+func use_watering_can() -> void:
+	var areas := interaction_area.get_overlapping_areas()
+	var closest_tile: Area2D = null
+	var closest_distance := 999999.0
+	for area in areas:
+		if area.has_method("water"):
+			var distance := interaction_area.global_position.distance_to(area.global_position)
+			if distance < closest_distance:
+				closest_distance = distance
+				closest_tile = area
+	if closest_tile != null:
+		closest_tile.water()
 func use_hoe() -> void:
 	var areas := interaction_area.get_overlapping_areas()
 	var closest_tile: Area2D = null
@@ -31,7 +45,17 @@ func use_hoe() -> void:
 	if closest_tile != null:
 		closest_tile.till()
 func use_seed():
-	print("use seed")
+	var areas := interaction_area.get_overlapping_areas()
+	var closest_tile: Area2D = null
+	var closest_distance := 999999.0
+	for area in areas:
+		if area.has_method("plant"):
+			var distance := interaction_area.global_position.distance_to(area.global_position)
+			if distance < closest_distance:
+				closest_distance = distance
+				closest_tile = area
+	if closest_tile != null:
+		closest_tile.plant()
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		if event.keycode == KEY_1:
@@ -40,3 +64,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.keycode == KEY_2:
 			current_tool = "seed"
 			print("current tool: seed")
+		elif event.keycode == KEY_3:
+			current_tool = "watering_can"
+			print("current tool: watering_can")

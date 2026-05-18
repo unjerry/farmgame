@@ -13,3 +13,14 @@ func create_farm_tile() -> void:
 			farm_tile.name = "FarmTile_%s_%s" % [x, y]
 			$FarmTiles.add_child(farm_tile)
 			farm_tile.position = farm_start_position + Vector2(x * tile_stride, y * tile_stride)
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_N:
+			next_day()
+func next_day() -> void:
+	print("next day")
+	grow_all_crops()
+func grow_all_crops() -> void:
+	for farm_tile in $FarmTiles.get_children():
+		if farm_tile.has_method("grow_crop"):
+			farm_tile.grow_crop()

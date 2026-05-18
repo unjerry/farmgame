@@ -2,12 +2,14 @@
 
 [ext_resource type="Script" uid="uid://cjp8tb8pwxb1m" path="res://scenes/farm/farm_tile.gd" id="1_2tvac"]
 [ext_resource type="Texture2D" uid="uid://be7tdyhke46a1" path="res://icon.svg" id="1_qx0iq"]
+[ext_resource type="PackedScene" uid="uid://bwtvosiab3ni2" path="res://scenes/crop/crop.tscn" id="2_6lncm"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qx0iq"]
 size = Vector2(64, 64)
 
 [node name="FarmTile" type="Area2D" unique_id=1669478379]
 script = ExtResource("1_2tvac")
+crop_scene = ExtResource("2_6lncm")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1780875780]
 scale = Vector2(0.5, 0.5)
