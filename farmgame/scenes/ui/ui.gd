@@ -10,6 +10,6 @@ func update_info() -> void:
 		DayManager.current_day,
 		ToolManager.current_tool,
 		InventoryManager.money,
-		InventoryManager.seed_count,
-		InventoryManager.crop_count
+		InventoryManager.get_item_count("turnip_seed"),
+		InventoryManager.get_item_count("turnip")
 	]

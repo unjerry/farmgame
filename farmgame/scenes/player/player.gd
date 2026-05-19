@@ -33,12 +33,13 @@ func use_tool() -> void:
 	elif ToolManager.current_tool == "hand":
 		use_hand()
 func use_hand() -> void:
+	var crop_item_id := "turnip"
 	var tile := get_closest_tile_with_method("harvest")
 	if tile == null:
 		return
 	var harvested: bool = tile.harvest()
 	if harvested:
-		InventoryManager.add_crop()
+		InventoryManager.add_item(crop_item_id, 1)
 func use_watering_can() -> void:
 	var tile := get_closest_tile_with_method("water")
 	if tile != null:
@@ -48,6 +49,7 @@ func use_hoe() -> void:
 	if tile != null:
 		tile.till()
 func use_seed() -> void:
+	var seed_item_id := "turnip_seed"
 	var tile := get_closest_tile_with_method("plant")
 	if tile == null:
 		return
@@ -55,7 +57,7 @@ func use_seed() -> void:
 		return
 	if not tile.can_plant():
 		return
-	if not InventoryManager.consume_seed():
+	if not InventoryManager.remove_item(seed_item_id, 1):
 		return
 	tile.plant()
 func _unhandled_input(event: InputEvent) -> void:

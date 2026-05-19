@@ -1,5 +1,5 @@
 ﻿===== Godot Project Export =====
-Exported At: 05/19/2026 12:31:14
+Exported At: 05/19/2026 15:13:15
 
 ===== project.godot =====
 ; Engine configuration file.
@@ -21,9 +21,16 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+ConfigManager="*uid://bb6tjgoatl308"
 InventoryManager="*uid://cacjgdmugqfec"
 DayManager="*uid://b5a8c7bdps1m8"
 ToolManager="*uid://qjjkbi2mcqyr"
+ShopManager="*uid://csw31awncmhm5"
+GameInputManager="*uid://c1pf3042xrbtj"
+
+[display]
+
+window/stretch/mode="canvas_items"
 
 [physics]
 
@@ -35,6 +42,29 @@ rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\data\economy.json =====
+{
+    "starting_money": 200,
+    "starting_seeds": 8,
+    "seed_price": 10,
+    "crop_sell_price": 25
+}
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\data\items.json =====
+{
+    "turnip_seed": {
+        "display_name": "Turnip Seed",
+        "type": "seed",
+        "buy_price": 10,
+        "crop_id": "turnip"
+    },
+    "turnip": {
+        "display_name": "Turnip",
+        "type": "crop",
+        "sell_price": 25
+    }
+}
 
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\crop\crop.gd =====
 extends Node2D
@@ -201,12 +231,13 @@ func use_tool() -> void:
 	elif ToolManager.current_tool == "hand":
 		use_hand()
 func use_hand() -> void:
+	var crop_item_id := "turnip"
 	var tile := get_closest_tile_with_method("harvest")
 	if tile == null:
 		return
 	var harvested: bool = tile.harvest()
 	if harvested:
-		InventoryManager.add_crop()
+		InventoryManager.add_item(crop_item_id, 1)
 func use_watering_can() -> void:
 	var tile := get_closest_tile_with_method("water")
 	if tile != null:
@@ -216,6 +247,7 @@ func use_hoe() -> void:
 	if tile != null:
 		tile.till()
 func use_seed() -> void:
+	var seed_item_id := "turnip_seed"
 	var tile := get_closest_tile_with_method("plant")
 	if tile == null:
 		return
@@ -223,7 +255,7 @@ func use_seed() -> void:
 		return
 	if not tile.can_plant():
 		return
-	if not InventoryManager.consume_seed():
+	if not InventoryManager.remove_item(seed_item_id, 1):
 		return
 	tile.plant()
 func _unhandled_input(event: InputEvent) -> void:
@@ -269,45 +301,6 @@ position = Vector2(0, 64)
 shape = SubResource("RectangleShape2D_dovo2")
 
 
-===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\systems\day_manager.gd =====
-extends Node
-signal day_changed
-var current_day := 1
-func next_day() -> void:
-	current_day += 1
-	print("day: ", current_day)
-	day_changed.emit()
-
-
-===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\systems\inventory_manager.gd =====
-extends Node
-signal inventory_changed
-var seed_count := 5
-var crop_count := 0
-func consume_seed() -> bool:
-	if seed_count <= 0:
-		print("no seeds")
-		return false
-	seed_count -= 1
-	print("seeds: ", seed_count)
-	inventory_changed.emit()
-	return true
-func add_crop(amount: int = 1) -> void:
-	crop_count += amount
-	print("crops: ", crop_count)
-	inventory_changed.emit()
-
-
-===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\systems\tool_manager.gd =====
-extends Node
-signal tool_changed
-var current_tool := "hoe"
-func set_tool(tool_name: String) -> void:
-	current_tool = tool_name
-	print("current tool: ", current_tool)
-	tool_changed.emit()
-
-
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\ui\ui.gd =====
 extends CanvasLayer
 @onready var info_label: Label = $InfoLabel
@@ -317,11 +310,12 @@ func _ready() -> void:
 	DayManager.day_changed.connect(update_info)
 	update_info()
 func update_info() -> void:
-	info_label.text = "Day: %s\nTool: %s\nSeeds: %s\nCrops: %s" % [
+	info_label.text = "Day: %s\nTool: %s\nMoney: %s\nSeeds: %s\nCrops: %s" % [
 		DayManager.current_day,
 		ToolManager.current_tool,
-		InventoryManager.seed_count,
-		InventoryManager.crop_count
+		InventoryManager.money,
+		InventoryManager.get_item_count("turnip_seed"),
+		InventoryManager.get_item_count("turnip")
 	]
 
 
@@ -334,10 +328,16 @@ func update_info() -> void:
 script = ExtResource("1_u7n8c")
 
 [node name="InfoLabel" type="Label" parent="." unique_id=1279618296]
-offset_right = 40.0
-offset_bottom = 23.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -852.0
+offset_bottom = -521.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "Day: 1
 Tool: hoe
+Money: 100
 Seeds: 5
 Crops: 0"
 
@@ -359,10 +359,6 @@ func create_farm_tile() -> void:
 			farm_tile.name = "FarmTile_%s_%s" % [x, y]
 			$FarmTiles.add_child(farm_tile)
 			farm_tile.position = farm_start_position + Vector2(x * tile_stride, y * tile_stride)
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		if event.keycode == KEY_N:
-			DayManager.next_day()
 func _on_day_changed() -> void:
 	grow_all_crops()
 func grow_all_crops() -> void:
@@ -388,6 +384,146 @@ mouse_filter = 2
 color = Color(0.6010999, 0.83032393, 0.8025916, 1)
 
 [node name="FarmTiles" type="Node2D" parent="." unique_id=320908641]
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\systems\config_manager.gd =====
+extends Node
+var economy := {}
+var items := {}
+func _ready() -> void:
+	load_economy_config()
+	load_items_config()
+func load_economy_config() -> void:
+	var file_text := FileAccess.get_file_as_string("res://data/economy.json")
+	var parsed_data = JSON.parse_string(file_text)
+	if parsed_data == null:
+		push_error("Failed to load economy.json")
+		return
+	economy = parsed_data
+func load_items_config() -> void:
+	var file_text := FileAccess.get_file_as_string("res://data/items.json")
+	var parsed_data = JSON.parse_string(file_text)
+	if parsed_data == null:
+		push_error("Failed to load items.json")
+		return
+	items = parsed_data
+func get_starting_money() -> int:
+	return economy.get("starting_money", 100)
+func get_starting_seeds() -> int:
+	return economy.get("starting_seeds", 5)
+func get_seed_price() -> int:
+	return economy.get("seed_price", 10)
+func get_crop_sell_price() -> int:
+	return economy.get("crop_sell_price", 25)
+func get_item_data(item_id: String) -> Dictionary:
+	return items.get(item_id, {})
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\systems\day_manager.gd =====
+extends Node
+signal day_changed
+var current_day := 1
+func next_day() -> void:
+	current_day += 1
+	print("day: ", current_day)
+	day_changed.emit()
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\systems\game_input_manager.gd =====
+extends Node
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_N:
+			DayManager.next_day()
+		elif event.keycode == KEY_B:
+			ShopManager.buy_seed()
+		elif event.keycode == KEY_S:
+			ShopManager.sell_crop()
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\systems\inventory_manager.gd =====
+extends Node
+signal inventory_changed
+var money := 0
+var seed_count := 0
+var crop_count := 0
+var items := {}
+func _ready() -> void:
+	money = ConfigManager.get_starting_money()
+	items["turnip_seed"] = ConfigManager.get_starting_seeds()
+	items["turnip"] = 0
+	sync_legacy_counts()
+	inventory_changed.emit()
+func sync_legacy_counts() -> void:
+	seed_count = get_item_count("turnip_seed")
+	crop_count = get_item_count("turnip")
+func get_item_count(item_id: String) -> int:
+	return int(items.get(item_id, 0))
+func has_item(item_id: String, amount: int = 1) -> bool:
+	return get_item_count(item_id) >= amount
+func add_item(item_id: String, amount: int = 1) -> void:
+	var current_count := get_item_count(item_id)
+	items[item_id] = current_count + amount
+	sync_legacy_counts()
+	print(item_id, ": ", get_item_count(item_id))
+	inventory_changed.emit()
+func remove_item(item_id: String, amount: int = 1) -> bool:
+	if not has_item(item_id, amount):
+		print("not enough item: ", item_id)
+		return false
+	items[item_id] = get_item_count(item_id) - amount
+	sync_legacy_counts()
+	print(item_id, ": ", get_item_count(item_id))
+	inventory_changed.emit()
+	return true
+func consume_seed() -> bool:
+	return remove_item("turnip_seed", 1)
+func add_seed(amount: int = 1) -> void:
+	add_item("turnip_seed", amount)
+func add_crop(amount: int = 1) -> void:
+	add_item("turnip", amount)
+func remove_crop(amount: int = 1) -> bool:
+	return remove_item("turnip", amount)
+func spend_money(amount: int) -> bool:
+	if money < amount:
+		print("not enough money")
+		return false
+	money -= amount
+	print("money: ", money)
+	inventory_changed.emit()
+	return true
+func add_money(amount: int) -> void:
+	money += amount
+	print("money: ", money)
+	inventory_changed.emit()
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\systems\shop_manager.gd =====
+extends Node
+var seed_item_id := "turnip_seed"
+var crop_item_id := "turnip"
+func buy_seed() -> void:
+	var seed_data: Dictionary = ConfigManager.get_item_data(seed_item_id)
+	var seed_price: int = seed_data.get("buy_price", 10)
+	if not InventoryManager.spend_money(seed_price):
+		return
+	InventoryManager.add_item(seed_item_id, 1)
+func sell_crop() -> void:
+	var crop_data: Dictionary = ConfigManager.get_item_data(crop_item_id)
+	var crop_price: int = crop_data.get("sell_price", 25)
+	if not InventoryManager.remove_item(crop_item_id, 1):
+		return
+	InventoryManager.add_money(crop_price)
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\systems\tool_manager.gd =====
+extends Node
+signal tool_changed
+var current_tool := "hoe"
+func set_tool(tool_name: String) -> void:
+	current_tool = tool_name
+	print("current tool: ", current_tool)
+	tool_changed.emit()
 
 
 ===== Asset Files =====
