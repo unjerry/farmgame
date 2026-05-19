@@ -7,10 +7,14 @@ var planted_crop: Node2D = null
 func till() -> void:
 	is_tilled = true
 	$Sprite2D.modulate = Color(0.55, 0.32, 0.18)
-func plant() -> bool:
+func can_plant() -> bool:
 	if not is_tilled:
 		return false
 	if has_crop:
+		return false
+	return true
+func plant() -> bool:
+	if not can_plant():
 		return false
 	has_crop = true
 	planted_crop = crop_scene.instantiate()

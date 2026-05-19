@@ -38,8 +38,7 @@ func use_hand() -> void:
 		return
 	var harvested: bool = tile.harvest()
 	if harvested:
-		InventoryManager.crop_count += 1
-		print("crop: ", InventoryManager.crop_count)
+		InventoryManager.add_crop()
 func use_watering_can() -> void:
 	var tile := get_closest_tile_with_method("water")
 	if tile != null:
@@ -48,17 +47,17 @@ func use_hoe() -> void:
 	var tile := get_closest_tile_with_method("till")
 	if tile != null:
 		tile.till()
-func use_seed():
-	if InventoryManager.seed_count <= 0:
-		print("no seeds")
-		return
+func use_seed() -> void:
 	var tile := get_closest_tile_with_method("plant")
 	if tile == null:
 		return
-	var planted: bool = tile.plant()
-	if planted:
-		InventoryManager.seed_count -= 1
-		print("seed: ", InventoryManager.seed_count)
+	if not tile.has_method("can_plant"):
+		return
+	if not tile.can_plant():
+		return
+	if not InventoryManager.consume_seed():
+		return
+	tile.plant()
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		if event.keycode == KEY_1:

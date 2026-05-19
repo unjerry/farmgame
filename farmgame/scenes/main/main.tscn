@@ -2,9 +2,12 @@
 
 [ext_resource type="PackedScene" uid="uid://dxsesq3sbvd33" path="res://scenes/player/player.tscn" id="1_hyk8p"]
 [ext_resource type="PackedScene" uid="uid://cg0gph4okeeta" path="res://scenes/world/world.tscn" id="1_iuonh"]
+[ext_resource type="PackedScene" uid="uid://bol2hwtiirlk8" path="res://scenes/ui/ui.tscn" id="3_k2fmo"]
 
 [node name="Main" type="Node2D" unique_id=756566586]
 
 [node name="World" parent="." unique_id=649554469 instance=ExtResource("1_iuonh")]
 
 [node name="Player" parent="." unique_id=794987288 instance=ExtResource("1_hyk8p")]
+
+[node name="UI" parent="." unique_id=708696193 instance=ExtResource("3_k2fmo")]
