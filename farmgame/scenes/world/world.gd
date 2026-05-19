@@ -14,14 +14,6 @@ func create_farm_tile() -> void:
 			farm_tile.name = "FarmTile_%s_%s" % [x, y]
 			$FarmTiles.add_child(farm_tile)
 			farm_tile.position = farm_start_position + Vector2(x * tile_stride, y * tile_stride)
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		if event.keycode == KEY_N:
-			DayManager.next_day()
-		elif event.keycode == KEY_B:
-			ShopManager.buy_seed()
-		elif event.keycode == KEY_S:
-			ShopManager.sell_crop()
 func _on_day_changed() -> void:
 	grow_all_crops()
 func grow_all_crops() -> void:

@@ -21,6 +21,7 @@ InventoryManager="*uid://cacjgdmugqfec"
 DayManager="*uid://b5a8c7bdps1m8"
 ToolManager="*uid://qjjkbi2mcqyr"
 ShopManager="*uid://csw31awncmhm5"
+GameInputManager="*uid://c1pf3042xrbtj"
 
 [display]
 
