@@ -24,13 +24,19 @@ func get_closest_tile_with_method(method_name: String) -> Area2D:
 				closest_tile = area
 	return closest_tile
 func use_tool() -> void:
-	if ToolManager.current_tool == "hoe":
-		use_hoe()
-	elif ToolManager.current_tool == "seed":
+	var item_data := ToolManager.get_selected_item_data()
+	var item_type: String = item_data.get("type", "")
+	if item_type == "tool":
+		use_tool_item(item_data)
+	elif item_type == "seed":
 		use_seed()
-	elif ToolManager.current_tool == "watering_can":
+func use_tool_item(item_data: Dictionary) -> void:
+	var tool_action: String = item_data.get("tool_action", "")
+	if tool_action == "till":
+		use_hoe()
+	elif tool_action == "water":
 		use_watering_can()
-	elif ToolManager.current_tool == "hand":
+	elif tool_action == "harvest":
 		use_hand()
 func use_hand() -> void:
 	var tile := get_closest_tile_with_method("harvest")
@@ -53,7 +59,7 @@ func use_hoe() -> void:
 	if tile != null:
 		tile.till()
 func use_seed() -> void:
-	var seed_item_id := "turnip_seed"
+	var seed_item_id := ToolManager.selected_item_id
 	var seed_data: Dictionary = ConfigManager.get_item_data(seed_item_id)
 	var crop_id: String = seed_data.get("crop_id", "")
 	if crop_id == "":
@@ -69,13 +75,3 @@ func use_seed() -> void:
 	if not InventoryManager.remove_item(seed_item_id, 1):
 		return
 	tile.plant(crop_id)
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		if event.keycode == KEY_1:
-			ToolManager.set_tool("hoe")
-		elif event.keycode == KEY_2:
-			ToolManager.set_tool("seed")
-		elif event.keycode == KEY_3:
-			ToolManager.set_tool("watering_can")
-		elif event.keycode == KEY_4:
-			ToolManager.set_tool("hand")

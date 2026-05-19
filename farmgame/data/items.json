@@ -1,4 +1,19 @@
 {
+    "hoe": {
+        "display_name": "Hoe",
+        "type": "tool",
+        "tool_action": "till"
+    },
+    "watering_can": {
+        "display_name": "Watering Can",
+        "type": "tool",
+        "tool_action": "water"
+    },
+    "hand": {
+        "display_name": "Hand",
+        "type": "tool",
+        "tool_action": "harvest"
+    },
     "turnip_seed": {
         "display_name": "Turnip Seed",
         "type": "seed",
