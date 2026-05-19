@@ -1,6 +1,5 @@
 extends CharacterBody2D
 var speed := 120.0
-var current_tool := "hoe"
 @onready var interaction_area: Area2D = $InteractionArea
 func _physics_process(_delta: float) -> void:
 	var direction := get_input_direction()
@@ -25,13 +24,13 @@ func get_closest_tile_with_method(method_name: String) -> Area2D:
 				closest_tile = area
 	return closest_tile
 func use_tool() -> void:
-	if current_tool == "hoe":
+	if ToolManager.current_tool == "hoe":
 		use_hoe()
-	elif current_tool == "seed":
+	elif ToolManager.current_tool == "seed":
 		use_seed()
-	elif current_tool == "watering_can":
+	elif ToolManager.current_tool == "watering_can":
 		use_watering_can()
-	elif current_tool == "hand":
+	elif ToolManager.current_tool == "hand":
 		use_hand()
 func use_hand() -> void:
 	var tile := get_closest_tile_with_method("harvest")
@@ -63,14 +62,10 @@ func use_seed():
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		if event.keycode == KEY_1:
-			current_tool = "hoe"
-			print("current tool: hoe")
+			ToolManager.set_tool("hoe")
 		elif event.keycode == KEY_2:
-			current_tool = "seed"
-			print("current tool: seed")
+			ToolManager.set_tool("seed")
 		elif event.keycode == KEY_3:
-			current_tool = "watering_can"
-			print("current tool: watering_can")
+			ToolManager.set_tool("watering_can")
 		elif event.keycode == KEY_4:
-			current_tool = "hand"
-			print("current tool: hand")
+			ToolManager.set_tool("hand")

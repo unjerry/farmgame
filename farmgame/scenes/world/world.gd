@@ -5,6 +5,7 @@ var grid_height := 4
 var tile_stride := 64
 var farm_start_position := Vector2(100, 200)
 func _ready() -> void:
+	DayManager.day_changed.connect(_on_day_changed)
 	create_farm_tile()
 func create_farm_tile() -> void:
 	for y in grid_height:
@@ -16,9 +17,8 @@ func create_farm_tile() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		if event.keycode == KEY_N:
-			next_day()
-func next_day() -> void:
-	print("next day")
+			DayManager.next_day()
+func _on_day_changed() -> void:
 	grow_all_crops()
 func grow_all_crops() -> void:
 	for farm_tile in $FarmTiles.get_children():
