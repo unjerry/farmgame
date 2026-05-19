@@ -16,3 +16,5 @@ func update_visual() -> void:
 		sprite.modulate = Color(1.0, 0.9, 0.2)
 	else:
 		sprite.modulate = Color(0.2, 0.8, 0.2)
+func is_mature() -> bool:
+	return growth_stage >= max_growth_stage
