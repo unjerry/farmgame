@@ -1,0 +1,8 @@
+{
+    "turnip": {
+        "display_name": "Turnip",
+        "max_growth_stage": 3,
+        "harvest_item_id": "turnip",
+        "harvest_amount": 1
+    }
+}

@@ -1,9 +1,14 @@
 extends Node2D
+var crop_id := "turnip"
 var growth_stage := 0
 var max_growth_stage := 3
 @onready var sprite: Sprite2D = $Sprite2D
 func _ready() -> void:
+	local_crop_data()
 	update_visual()
+func local_crop_data() -> void:
+	var crop_data: Dictionary = ConfigManager.get_crop_data(crop_id)
+	max_growth_stage = crop_data.get("max_growth_stage", 3)
 func grow() -> void:
 	if growth_stage >= max_growth_stage:
 		return

@@ -4,6 +4,7 @@ var is_tilled := false
 var has_crop := false
 var is_watered := false
 var planted_crop: Node2D = null
+var planted_crop_id := ""
 func till() -> void:
 	is_tilled = true
 	$Sprite2D.modulate = Color(0.55, 0.32, 0.18)
@@ -13,11 +14,13 @@ func can_plant() -> bool:
 	if has_crop:
 		return false
 	return true
-func plant() -> bool:
+func plant(crop_id: String = "turnip") -> bool:
 	if not can_plant():
 		return false
 	has_crop = true
+	planted_crop_id = crop_id
 	planted_crop = crop_scene.instantiate()
+	planted_crop.set("crop_id", crop_id)
 	add_child(planted_crop)
 	planted_crop.position = Vector2.ZERO
 	return true
@@ -35,17 +38,23 @@ func grow_crop() -> void:
 		planted_crop.grow()
 	is_watered = false
 	$Sprite2D.modulate = Color(0.55, 0.32, 0.18)
-func harvest() -> bool:
+func harvest() -> Dictionary:
 	if planted_crop == null:
-		return false
+		return {}
 	if not planted_crop.has_method("is_mature"):
-		return false
+		return {}
 	if not planted_crop.is_mature():
-		return false
+		return {}
+	var crop_data: Dictionary = ConfigManager.get_crop_data(planted_crop_id)
+	var harvest_item_id: String = crop_data.get("harvest_item_id", "")
+	var harvest_amount: int = crop_data.get("harvest_amount", 1)
+	if harvest_item_id == "":
+		return {}
 	planted_crop.queue_free()
 	planted_crop = null
+	planted_crop_id = ""
 	has_crop = false
 	is_watered = false
 	$Sprite2D.modulate = Color(0.55, 0.32, 0.18)
-	print("harvested crop")
-	return true
+	print("harvested crop: ", harvest_item_id, " x", harvest_amount)
+	return {"item_id": harvest_item_id, "amount": harvest_amount}

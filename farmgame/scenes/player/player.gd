@@ -33,13 +33,17 @@ func use_tool() -> void:
 	elif ToolManager.current_tool == "hand":
 		use_hand()
 func use_hand() -> void:
-	var crop_item_id := "turnip"
 	var tile := get_closest_tile_with_method("harvest")
 	if tile == null:
 		return
-	var harvested: bool = tile.harvest()
-	if harvested:
-		InventoryManager.add_item(crop_item_id, 1)
+	var harvested_result: Dictionary = tile.harvest()
+	if harvested_result.is_empty():
+		return
+	var item_id: String = harvested_result.get("item_id", "")
+	var amount: int = harvested_result.get("amount", 1)
+	if item_id == "":
+		return
+	InventoryManager.add_item(item_id, amount)
 func use_watering_can() -> void:
 	var tile := get_closest_tile_with_method("water")
 	if tile != null:
@@ -50,6 +54,11 @@ func use_hoe() -> void:
 		tile.till()
 func use_seed() -> void:
 	var seed_item_id := "turnip_seed"
+	var seed_data: Dictionary = ConfigManager.get_item_data(seed_item_id)
+	var crop_id: String = seed_data.get("crop_id", "")
+	if crop_id == "":
+		print("seed has no crop_id: ", seed_item_id)
+		return
 	var tile := get_closest_tile_with_method("plant")
 	if tile == null:
 		return
@@ -59,7 +68,7 @@ func use_seed() -> void:
 		return
 	if not InventoryManager.remove_item(seed_item_id, 1):
 		return
-	tile.plant()
+	tile.plant(crop_id)
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		if event.keycode == KEY_1:
