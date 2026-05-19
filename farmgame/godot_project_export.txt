@@ -1,0 +1,394 @@
+﻿===== Godot Project Export =====
+Exported At: 05/19/2026 12:31:14
+
+===== project.godot =====
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="farmgame"
+run/main_scene="uid://b8run4tuv0f5c"
+config/features=PackedStringArray("4.6", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+InventoryManager="*uid://cacjgdmugqfec"
+DayManager="*uid://b5a8c7bdps1m8"
+ToolManager="*uid://qjjkbi2mcqyr"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\crop\crop.gd =====
+extends Node2D
+var growth_stage := 0
+var max_growth_stage := 3
+@onready var sprite: Sprite2D = $Sprite2D
+func _ready() -> void:
+	update_visual()
+func grow() -> void:
+	if growth_stage >= max_growth_stage:
+		return
+	growth_stage += 1
+	update_visual()
+func update_visual() -> void:
+	var scale_value := 0.18 + growth_stage * 0.08
+	sprite.scale = Vector2(scale_value, scale_value)
+	if growth_stage >= max_growth_stage:
+		sprite.modulate = Color(1.0, 0.9, 0.2)
+	else:
+		sprite.modulate = Color(0.2, 0.8, 0.2)
+func is_mature() -> bool:
+	return growth_stage >= max_growth_stage
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\crop\crop.tscn =====
+[gd_scene format=3 uid="uid://bwtvosiab3ni2"]
+
+[ext_resource type="Script" uid="uid://cbpkpvkrn8i43" path="res://scenes/crop/crop.gd" id="1_o3xuo"]
+[ext_resource type="Texture2D" uid="uid://be7tdyhke46a1" path="res://icon.svg" id="1_tuvmx"]
+
+[node name="Crop" type="Node2D" unique_id=1797342770]
+script = ExtResource("1_o3xuo")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1052483741]
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("1_tuvmx")
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\farm\farm_tile.gd =====
+extends Area2D
+@export var crop_scene: PackedScene
+var is_tilled := false
+var has_crop := false
+var is_watered := false
+var planted_crop: Node2D = null
+func till() -> void:
+	is_tilled = true
+	$Sprite2D.modulate = Color(0.55, 0.32, 0.18)
+func can_plant() -> bool:
+	if not is_tilled:
+		return false
+	if has_crop:
+		return false
+	return true
+func plant() -> bool:
+	if not can_plant():
+		return false
+	has_crop = true
+	planted_crop = crop_scene.instantiate()
+	add_child(planted_crop)
+	planted_crop.position = Vector2.ZERO
+	return true
+func water() -> void:
+	if not has_crop:
+		return
+	is_watered = true
+	$Sprite2D.modulate = Color(0.1, 0.5, 0.35)
+func grow_crop() -> void:
+	if planted_crop == null:
+		return
+	if not is_watered:
+		return
+	if planted_crop.has_method("grow"):
+		planted_crop.grow()
+	is_watered = false
+	$Sprite2D.modulate = Color(0.55, 0.32, 0.18)
+func harvest() -> bool:
+	if planted_crop == null:
+		return false
+	if not planted_crop.has_method("is_mature"):
+		return false
+	if not planted_crop.is_mature():
+		return false
+	planted_crop.queue_free()
+	planted_crop = null
+	has_crop = false
+	is_watered = false
+	$Sprite2D.modulate = Color(0.55, 0.32, 0.18)
+	print("harvested crop")
+	return true
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\farm\farm_tile.tscn =====
+[gd_scene format=3 uid="uid://d1xpj3bmx11oh"]
+
+[ext_resource type="Script" uid="uid://cjp8tb8pwxb1m" path="res://scenes/farm/farm_tile.gd" id="1_2tvac"]
+[ext_resource type="Texture2D" uid="uid://be7tdyhke46a1" path="res://icon.svg" id="1_qx0iq"]
+[ext_resource type="PackedScene" uid="uid://bwtvosiab3ni2" path="res://scenes/crop/crop.tscn" id="2_6lncm"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qx0iq"]
+size = Vector2(64, 64)
+
+[node name="FarmTile" type="Area2D" unique_id=1669478379]
+script = ExtResource("1_2tvac")
+crop_scene = ExtResource("2_6lncm")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1780875780]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_qx0iq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1131927807]
+shape = SubResource("RectangleShape2D_qx0iq")
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\main\main.tscn =====
+[gd_scene format=3 uid="uid://b8run4tuv0f5c"]
+
+[ext_resource type="PackedScene" uid="uid://dxsesq3sbvd33" path="res://scenes/player/player.tscn" id="1_hyk8p"]
+[ext_resource type="PackedScene" uid="uid://cg0gph4okeeta" path="res://scenes/world/world.tscn" id="1_iuonh"]
+[ext_resource type="PackedScene" uid="uid://bol2hwtiirlk8" path="res://scenes/ui/ui.tscn" id="3_k2fmo"]
+
+[node name="Main" type="Node2D" unique_id=756566586]
+
+[node name="World" parent="." unique_id=649554469 instance=ExtResource("1_iuonh")]
+
+[node name="Player" parent="." unique_id=794987288 instance=ExtResource("1_hyk8p")]
+
+[node name="UI" parent="." unique_id=708696193 instance=ExtResource("3_k2fmo")]
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\player\player.gd =====
+extends CharacterBody2D
+var speed := 120.0
+@onready var interaction_area: Area2D = $InteractionArea
+func _physics_process(_delta: float) -> void:
+	var direction := get_input_direction()
+	move_player(direction)
+	if Input.is_action_just_pressed("ui_accept"):
+		use_tool()
+func get_input_direction() -> Vector2:
+	var direction := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	return direction
+func move_player(direction: Vector2) -> void:
+	velocity = direction * speed
+	move_and_slide()
+func get_closest_tile_with_method(method_name: String) -> Area2D:
+	var areas := interaction_area.get_overlapping_areas()
+	var closest_tile: Area2D = null
+	var closest_distance := 999999.0
+	for area in areas:
+		if area.has_method(method_name):
+			var distance := interaction_area.global_position.distance_to(area.global_position)
+			if distance < closest_distance:
+				closest_distance = distance
+				closest_tile = area
+	return closest_tile
+func use_tool() -> void:
+	if ToolManager.current_tool == "hoe":
+		use_hoe()
+	elif ToolManager.current_tool == "seed":
+		use_seed()
+	elif ToolManager.current_tool == "watering_can":
+		use_watering_can()
+	elif ToolManager.current_tool == "hand":
+		use_hand()
+func use_hand() -> void:
+	var tile := get_closest_tile_with_method("harvest")
+	if tile == null:
+		return
+	var harvested: bool = tile.harvest()
+	if harvested:
+		InventoryManager.add_crop()
+func use_watering_can() -> void:
+	var tile := get_closest_tile_with_method("water")
+	if tile != null:
+		tile.water()
+func use_hoe() -> void:
+	var tile := get_closest_tile_with_method("till")
+	if tile != null:
+		tile.till()
+func use_seed() -> void:
+	var tile := get_closest_tile_with_method("plant")
+	if tile == null:
+		return
+	if not tile.has_method("can_plant"):
+		return
+	if not tile.can_plant():
+		return
+	if not InventoryManager.consume_seed():
+		return
+	tile.plant()
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_1:
+			ToolManager.set_tool("hoe")
+		elif event.keycode == KEY_2:
+			ToolManager.set_tool("seed")
+		elif event.keycode == KEY_3:
+			ToolManager.set_tool("watering_can")
+		elif event.keycode == KEY_4:
+			ToolManager.set_tool("hand")
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\player\player.tscn =====
+[gd_scene format=3 uid="uid://dxsesq3sbvd33"]
+
+[ext_resource type="Texture2D" uid="uid://be7tdyhke46a1" path="res://icon.svg" id="1_8afob"]
+[ext_resource type="Script" uid="uid://ckdtvylf3stk7" path="res://scenes/player/player.gd" id="1_dovo2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8afob"]
+size = Vector2(64, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dovo2"]
+size = Vector2(60, 60)
+
+[node name="Player" type="CharacterBody2D" unique_id=794987288]
+script = ExtResource("1_dovo2")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1508910141]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_8afob")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1806120664]
+shape = SubResource("RectangleShape2D_8afob")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=915473541]
+
+[node name="InteractionArea" type="Area2D" parent="." unique_id=1483179648]
+position = Vector2(0, 64)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea" unique_id=633053556]
+shape = SubResource("RectangleShape2D_dovo2")
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\systems\day_manager.gd =====
+extends Node
+signal day_changed
+var current_day := 1
+func next_day() -> void:
+	current_day += 1
+	print("day: ", current_day)
+	day_changed.emit()
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\systems\inventory_manager.gd =====
+extends Node
+signal inventory_changed
+var seed_count := 5
+var crop_count := 0
+func consume_seed() -> bool:
+	if seed_count <= 0:
+		print("no seeds")
+		return false
+	seed_count -= 1
+	print("seeds: ", seed_count)
+	inventory_changed.emit()
+	return true
+func add_crop(amount: int = 1) -> void:
+	crop_count += amount
+	print("crops: ", crop_count)
+	inventory_changed.emit()
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\systems\tool_manager.gd =====
+extends Node
+signal tool_changed
+var current_tool := "hoe"
+func set_tool(tool_name: String) -> void:
+	current_tool = tool_name
+	print("current tool: ", current_tool)
+	tool_changed.emit()
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\ui\ui.gd =====
+extends CanvasLayer
+@onready var info_label: Label = $InfoLabel
+func _ready() -> void:
+	ToolManager.tool_changed.connect(update_info)
+	InventoryManager.inventory_changed.connect(update_info)
+	DayManager.day_changed.connect(update_info)
+	update_info()
+func update_info() -> void:
+	info_label.text = "Day: %s\nTool: %s\nSeeds: %s\nCrops: %s" % [
+		DayManager.current_day,
+		ToolManager.current_tool,
+		InventoryManager.seed_count,
+		InventoryManager.crop_count
+	]
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\ui\ui.tscn =====
+[gd_scene format=3 uid="uid://bol2hwtiirlk8"]
+
+[ext_resource type="Script" uid="uid://cw65y7xr4krqc" path="res://scenes/ui/ui.gd" id="1_u7n8c"]
+
+[node name="UI" type="CanvasLayer" unique_id=708696193]
+script = ExtResource("1_u7n8c")
+
+[node name="InfoLabel" type="Label" parent="." unique_id=1279618296]
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Day: 1
+Tool: hoe
+Seeds: 5
+Crops: 0"
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\world\world.gd =====
+extends Node2D
+@export var farm_tile_scene: PackedScene
+var grid_width := 3
+var grid_height := 4
+var tile_stride := 64
+var farm_start_position := Vector2(100, 200)
+func _ready() -> void:
+	DayManager.day_changed.connect(_on_day_changed)
+	create_farm_tile()
+func create_farm_tile() -> void:
+	for y in grid_height:
+		for x in grid_width:
+			var farm_tile := farm_tile_scene.instantiate()
+			farm_tile.name = "FarmTile_%s_%s" % [x, y]
+			$FarmTiles.add_child(farm_tile)
+			farm_tile.position = farm_start_position + Vector2(x * tile_stride, y * tile_stride)
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_N:
+			DayManager.next_day()
+func _on_day_changed() -> void:
+	grow_all_crops()
+func grow_all_crops() -> void:
+	for farm_tile in $FarmTiles.get_children():
+		if farm_tile.has_method("grow_crop"):
+			farm_tile.grow_crop()
+
+
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\world\world.tscn =====
+[gd_scene format=3 uid="uid://cg0gph4okeeta"]
+
+[ext_resource type="Script" uid="uid://d1p0a5usg86j" path="res://scenes/world/world.gd" id="1_dphjl"]
+[ext_resource type="PackedScene" uid="uid://d1xpj3bmx11oh" path="res://scenes/farm/farm_tile.tscn" id="2_sl2e5"]
+
+[node name="World" type="Node2D" unique_id=649554469]
+script = ExtResource("1_dphjl")
+farm_tile_scene = ExtResource("2_sl2e5")
+
+[node name="Ground" type="ColorRect" parent="." unique_id=395486074]
+offset_right = 2000.0
+offset_bottom = 2000.0
+mouse_filter = 2
+color = Color(0.6010999, 0.83032393, 0.8025916, 1)
+
+[node name="FarmTiles" type="Node2D" parent="." unique_id=320908641]
+
+
+===== Asset Files =====
+E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\icon.svg
