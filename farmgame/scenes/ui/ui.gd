@@ -6,9 +6,10 @@ func _ready() -> void:
 	DayManager.day_changed.connect(update_info)
 	update_info()
 func update_info() -> void:
-	info_label.text = "Day: %s\nTool: %s\nSeeds: %s\nCrops: %s" % [
+	info_label.text = "Day: %s\nTool: %s\nMoney: %s\nSeeds: %s\nCrops: %s" % [
 		DayManager.current_day,
 		ToolManager.current_tool,
+		InventoryManager.money,
 		InventoryManager.seed_count,
 		InventoryManager.crop_count
 	]
