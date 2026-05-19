@@ -9,6 +9,8 @@ func _ready() -> void:
 	inventory_changed.emit()
 func get_item_count(item_id: String) -> int:
 	return int(items.get(item_id, 0))
+func get_all_items() -> Dictionary:
+	return items.duplicate()
 func has_item(item_id: String, amount: int = 1) -> bool:
 	return get_item_count(item_id) >= amount
 func add_item(item_id: String, amount: int = 1) -> void:

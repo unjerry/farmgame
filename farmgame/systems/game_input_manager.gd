@@ -7,7 +7,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			ShopManager.buy_seed()
 		elif event.keycode == KEY_S:
 			ShopManager.sell_crop()
-		if event.keycode == KEY_1:
+		elif event.keycode == KEY_1:
 			ToolManager.select_hotbar_slot(0)
 		elif event.keycode == KEY_2:
 			ToolManager.select_hotbar_slot(1)

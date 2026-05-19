@@ -1,5 +1,5 @@
 ﻿===== Godot Project Export =====
-Exported At: 05/19/2026 15:13:15
+Exported At: 05/19/2026 20:53:50
 
 ===== project.godot =====
 ; Engine configuration file.
@@ -43,6 +43,16 @@ renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 
 
+===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\data\crops.json =====
+{
+    "turnip": {
+        "display_name": "Turnip",
+        "max_growth_stage": 3,
+        "harvest_item_id": "turnip",
+        "harvest_amount": 1
+    }
+}
+
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\data\economy.json =====
 {
     "starting_money": 200,
@@ -53,6 +63,21 @@ renderer/rendering_method.mobile="gl_compatibility"
 
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\data\items.json =====
 {
+    "hoe": {
+        "display_name": "Hoe",
+        "type": "tool",
+        "tool_action": "till"
+    },
+    "watering_can": {
+        "display_name": "Watering Can",
+        "type": "tool",
+        "tool_action": "water"
+    },
+    "hand": {
+        "display_name": "Hand",
+        "type": "tool",
+        "tool_action": "harvest"
+    },
     "turnip_seed": {
         "display_name": "Turnip Seed",
         "type": "seed",
@@ -68,11 +93,16 @@ renderer/rendering_method.mobile="gl_compatibility"
 
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\crop\crop.gd =====
 extends Node2D
+var crop_id := "turnip"
 var growth_stage := 0
 var max_growth_stage := 3
 @onready var sprite: Sprite2D = $Sprite2D
 func _ready() -> void:
+	local_crop_data()
 	update_visual()
+func local_crop_data() -> void:
+	var crop_data: Dictionary = ConfigManager.get_crop_data(crop_id)
+	max_growth_stage = crop_data.get("max_growth_stage", 3)
 func grow() -> void:
 	if growth_stage >= max_growth_stage:
 		return
@@ -110,6 +140,7 @@ var is_tilled := false
 var has_crop := false
 var is_watered := false
 var planted_crop: Node2D = null
+var planted_crop_id := ""
 func till() -> void:
 	is_tilled = true
 	$Sprite2D.modulate = Color(0.55, 0.32, 0.18)
@@ -119,11 +150,13 @@ func can_plant() -> bool:
 	if has_crop:
 		return false
 	return true
-func plant() -> bool:
+func plant(crop_id: String = "turnip") -> bool:
 	if not can_plant():
 		return false
 	has_crop = true
+	planted_crop_id = crop_id
 	planted_crop = crop_scene.instantiate()
+	planted_crop.set("crop_id", crop_id)
 	add_child(planted_crop)
 	planted_crop.position = Vector2.ZERO
 	return true
@@ -141,20 +174,26 @@ func grow_crop() -> void:
 		planted_crop.grow()
 	is_watered = false
 	$Sprite2D.modulate = Color(0.55, 0.32, 0.18)
-func harvest() -> bool:
+func harvest() -> Dictionary:
 	if planted_crop == null:
-		return false
+		return {}
 	if not planted_crop.has_method("is_mature"):
-		return false
+		return {}
 	if not planted_crop.is_mature():
-		return false
+		return {}
+	var crop_data: Dictionary = ConfigManager.get_crop_data(planted_crop_id)
+	var harvest_item_id: String = crop_data.get("harvest_item_id", "")
+	var harvest_amount: int = crop_data.get("harvest_amount", 1)
+	if harvest_item_id == "":
+		return {}
 	planted_crop.queue_free()
 	planted_crop = null
+	planted_crop_id = ""
 	has_crop = false
 	is_watered = false
 	$Sprite2D.modulate = Color(0.55, 0.32, 0.18)
-	print("harvested crop")
-	return true
+	print("harvested crop: ", harvest_item_id, " x", harvest_amount)
+	return {"item_id": harvest_item_id, "amount": harvest_amount}
 
 
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\farm\farm_tile.tscn =====
@@ -222,22 +261,32 @@ func get_closest_tile_with_method(method_name: String) -> Area2D:
 				closest_tile = area
 	return closest_tile
 func use_tool() -> void:
-	if ToolManager.current_tool == "hoe":
-		use_hoe()
-	elif ToolManager.current_tool == "seed":
+	var item_data := ToolManager.get_selected_item_data()
+	var item_type: String = item_data.get("type", "")
+	if item_type == "tool":
+		use_tool_item(item_data)
+	elif item_type == "seed":
 		use_seed()
-	elif ToolManager.current_tool == "watering_can":
+func use_tool_item(item_data: Dictionary) -> void:
+	var tool_action: String = item_data.get("tool_action", "")
+	if tool_action == "till":
+		use_hoe()
+	elif tool_action == "water":
 		use_watering_can()
-	elif ToolManager.current_tool == "hand":
+	elif tool_action == "harvest":
 		use_hand()
 func use_hand() -> void:
-	var crop_item_id := "turnip"
 	var tile := get_closest_tile_with_method("harvest")
 	if tile == null:
 		return
-	var harvested: bool = tile.harvest()
-	if harvested:
-		InventoryManager.add_item(crop_item_id, 1)
+	var harvested_result: Dictionary = tile.harvest()
+	if harvested_result.is_empty():
+		return
+	var item_id: String = harvested_result.get("item_id", "")
+	var amount: int = harvested_result.get("amount", 1)
+	if item_id == "":
+		return
+	InventoryManager.add_item(item_id, amount)
 func use_watering_can() -> void:
 	var tile := get_closest_tile_with_method("water")
 	if tile != null:
@@ -247,7 +296,12 @@ func use_hoe() -> void:
 	if tile != null:
 		tile.till()
 func use_seed() -> void:
-	var seed_item_id := "turnip_seed"
+	var seed_item_id := ToolManager.selected_item_id
+	var seed_data: Dictionary = ConfigManager.get_item_data(seed_item_id)
+	var crop_id: String = seed_data.get("crop_id", "")
+	if crop_id == "":
+		print("seed has no crop_id: ", seed_item_id)
+		return
 	var tile := get_closest_tile_with_method("plant")
 	if tile == null:
 		return
@@ -257,17 +311,7 @@ func use_seed() -> void:
 		return
 	if not InventoryManager.remove_item(seed_item_id, 1):
 		return
-	tile.plant()
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		if event.keycode == KEY_1:
-			ToolManager.set_tool("hoe")
-		elif event.keycode == KEY_2:
-			ToolManager.set_tool("seed")
-		elif event.keycode == KEY_3:
-			ToolManager.set_tool("watering_can")
-		elif event.keycode == KEY_4:
-			ToolManager.set_tool("hand")
+	tile.plant(crop_id)
 
 
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\player\player.tscn =====
@@ -304,19 +348,41 @@ shape = SubResource("RectangleShape2D_dovo2")
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\ui\ui.gd =====
 extends CanvasLayer
 @onready var info_label: Label = $InfoLabel
+@onready var hotbar_label: Label = $HotbarLabel
 func _ready() -> void:
 	ToolManager.tool_changed.connect(update_info)
 	InventoryManager.inventory_changed.connect(update_info)
 	DayManager.day_changed.connect(update_info)
 	update_info()
 func update_info() -> void:
+	update_status_text()
+	update_hotbar_text()
+func update_status_text() -> void:
+	var select_item_name: String = ToolManager.get_selected_item_name()
 	info_label.text = "Day: %s\nTool: %s\nMoney: %s\nSeeds: %s\nCrops: %s" % [
 		DayManager.current_day,
-		ToolManager.current_tool,
+		select_item_name,
 		InventoryManager.money,
 		InventoryManager.get_item_count("turnip_seed"),
 		InventoryManager.get_item_count("turnip")
 	]
+func update_hotbar_text() -> void:
+	var parts := []
+	for i in ToolManager.hotbar_items.size():
+		var item_id: String = ToolManager.hotbar_items[i]
+		var item_data: Dictionary = ConfigManager.get_item_data(item_id)
+		var display_name: String = item_data.get("display_name", item_id)
+		var item_type: String = item_data.get("type", "")
+		var text := "%s %s" % [i + 1, display_name]
+		if item_type == "seed" or item_type == "crop":
+			var count := InventoryManager.get_item_count(item_id)
+			text += " x%s"%count
+		if item_id == ToolManager.selected_item_id:
+			text = "[%s]"%text
+		else:
+			text = " %s "%text
+		parts.append(text)
+	hotbar_label.text = " ".join(parts)
 
 
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\ui\ui.tscn =====
@@ -340,6 +406,16 @@ Tool: hoe
 Money: 100
 Seeds: 5
 Crops: 0"
+
+[node name="HotbarLabel" type="Label" parent="." unique_id=1209053100]
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -399.0
+offset_top = -23.0
+text = "[1 Hoe] [2 Turnip Seed x8] [3 Watering Can] [4 Hand]"
 
 
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\scenes\world\world.gd =====
@@ -390,9 +466,11 @@ color = Color(0.6010999, 0.83032393, 0.8025916, 1)
 extends Node
 var economy := {}
 var items := {}
+var crops := {}
 func _ready() -> void:
 	load_economy_config()
 	load_items_config()
+	load_crops_config()
 func load_economy_config() -> void:
 	var file_text := FileAccess.get_file_as_string("res://data/economy.json")
 	var parsed_data = JSON.parse_string(file_text)
@@ -407,6 +485,13 @@ func load_items_config() -> void:
 		push_error("Failed to load items.json")
 		return
 	items = parsed_data
+func load_crops_config() -> void:
+	var file_text := FileAccess.get_file_as_string("res://data/crops.json")
+	var parsed_data = JSON.parse_string(file_text)
+	if parsed_data == null:
+		push_error("Failed to load crops.json")
+		return
+	crops = parsed_data
 func get_starting_money() -> int:
 	return economy.get("starting_money", 100)
 func get_starting_seeds() -> int:
@@ -417,6 +502,8 @@ func get_crop_sell_price() -> int:
 	return economy.get("crop_sell_price", 25)
 func get_item_data(item_id: String) -> Dictionary:
 	return items.get(item_id, {})
+func get_crop_data(crop_id: String) -> Dictionary:
+	return crops.get(crop_id, {})
 
 
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\systems\day_manager.gd =====
@@ -439,24 +526,26 @@ func _unhandled_input(event: InputEvent) -> void:
 			ShopManager.buy_seed()
 		elif event.keycode == KEY_S:
 			ShopManager.sell_crop()
+		if event.keycode == KEY_1:
+			ToolManager.select_hotbar_slot(0)
+		elif event.keycode == KEY_2:
+			ToolManager.select_hotbar_slot(1)
+		elif event.keycode == KEY_3:
+			ToolManager.select_hotbar_slot(2)
+		elif event.keycode == KEY_4:
+			ToolManager.select_hotbar_slot(3)
 
 
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\systems\inventory_manager.gd =====
 extends Node
 signal inventory_changed
 var money := 0
-var seed_count := 0
-var crop_count := 0
 var items := {}
 func _ready() -> void:
 	money = ConfigManager.get_starting_money()
 	items["turnip_seed"] = ConfigManager.get_starting_seeds()
 	items["turnip"] = 0
-	sync_legacy_counts()
 	inventory_changed.emit()
-func sync_legacy_counts() -> void:
-	seed_count = get_item_count("turnip_seed")
-	crop_count = get_item_count("turnip")
 func get_item_count(item_id: String) -> int:
 	return int(items.get(item_id, 0))
 func has_item(item_id: String, amount: int = 1) -> bool:
@@ -464,7 +553,6 @@ func has_item(item_id: String, amount: int = 1) -> bool:
 func add_item(item_id: String, amount: int = 1) -> void:
 	var current_count := get_item_count(item_id)
 	items[item_id] = current_count + amount
-	sync_legacy_counts()
 	print(item_id, ": ", get_item_count(item_id))
 	inventory_changed.emit()
 func remove_item(item_id: String, amount: int = 1) -> bool:
@@ -472,18 +560,9 @@ func remove_item(item_id: String, amount: int = 1) -> bool:
 		print("not enough item: ", item_id)
 		return false
 	items[item_id] = get_item_count(item_id) - amount
-	sync_legacy_counts()
 	print(item_id, ": ", get_item_count(item_id))
 	inventory_changed.emit()
 	return true
-func consume_seed() -> bool:
-	return remove_item("turnip_seed", 1)
-func add_seed(amount: int = 1) -> void:
-	add_item("turnip_seed", amount)
-func add_crop(amount: int = 1) -> void:
-	add_item("turnip", amount)
-func remove_crop(amount: int = 1) -> bool:
-	return remove_item("turnip", amount)
 func spend_money(amount: int) -> bool:
 	if money < amount:
 		print("not enough money")
@@ -519,11 +598,26 @@ func sell_crop() -> void:
 ===== E:\GitUsbWorkspace\aUnification\uni_projects\2026upppSpringg\Game\farmgame\core\farmgame\systems\tool_manager.gd =====
 extends Node
 signal tool_changed
-var current_tool := "hoe"
-func set_tool(tool_name: String) -> void:
-	current_tool = tool_name
-	print("current tool: ", current_tool)
+var selected_item_id := "hoe"
+var hotbar_items := [
+	"hoe",
+	"turnip_seed",
+	"watering_can",
+	"hand"
+]
+func select_hotbar_slot(slot_index: int) -> void:
+	if slot_index < 0:
+		return
+	if slot_index >= hotbar_items.size():
+		return
+	selected_item_id = hotbar_items[slot_index]
+	print("selected item: ", selected_item_id)
 	tool_changed.emit()
+func get_selected_item_data() -> Dictionary:
+	return ConfigManager.get_item_data(selected_item_id)
+func get_selected_item_name() -> String:
+	var item_data: Dictionary = get_selected_item_data()
+	return item_data.get("display_name", selected_item_id)
 
 
 ===== Asset Files =====
