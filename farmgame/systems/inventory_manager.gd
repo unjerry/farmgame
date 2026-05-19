@@ -1,8 +1,12 @@
 extends Node
 signal inventory_changed
-var money := 100
-var seed_count := 5
+var money := 0
+var seed_count := 0
 var crop_count := 0
+func _ready() -> void:
+	money = ConfigManager.get_starting_money()
+	seed_count = ConfigManager.get_starting_seeds()
+	inventory_changed.emit()
 func consume_seed() -> bool:
 	if seed_count <= 0:
 		print("no seeds")

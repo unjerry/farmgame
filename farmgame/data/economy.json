@@ -1,0 +1,6 @@
+{
+    "starting_money": 200,
+    "starting_seeds": 8,
+    "seed_price": 10,
+    "crop_sell_price": 25
+}
